@@ -4,7 +4,7 @@ import requests
 API_PREFIX = 'https://a.wunderlist.com/api/v1/'
 
 
-class WunderLex(object):
+class WunderClient(object):
 
     def __init__(self, client_id=None, access_token=None):
         self.client_id = client_id
@@ -18,9 +18,15 @@ class WunderLex(object):
         path = '{}{}'.format(API_PREFIX, path)
 
         if method == 'GET':
-            return requests.get(path, headers=headers)
+            resp = requests.get(path, headers=headers)
+            resp.raise_for_status()
+            return resp.json()
 
     def me(self):
-        resp = self.request('user')
-        resp.raise_for_status()
-        return resp.json()
+        return self.request('user')
+
+    def get_lists(self):
+        return self.request('lists')
+
+    def get_list(self, id):
+        return self.request('lists/{}'.format(id))
