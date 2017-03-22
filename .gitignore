@@ -1,0 +1,8 @@
+# virtualenv
+venv/
+
+# local config
+.env
+
+# python
+*.pyc
