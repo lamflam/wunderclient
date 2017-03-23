@@ -8,8 +8,23 @@ import requests
 API_PREFIX = 'https://a.wunderlist.com/api/v1/'
 
 
+# utils
+def defaulttuple(typename, field_names):
+    T = namedtuple(typename, field_names)
+    T.__new__.__defaults__ = (None,) * len(T._fields)
+
+    def __new__(cls, *args, **kwargs):
+        for k in kwargs.keys():
+            if k not in T._fields:
+                kwargs.pop(k)
+        return T.__new__(cls, *args, **kwargs)
+
+    return type(T.__name__, (T,), {'__new__': __new__})
+
+
 # types
-List = namedtuple('List', ['id', 'created_at', 'title', 'list_type', 'type', 'revision'])
+User = defaulttuple('User', 'id, name, email, created_at, revision')
+List = defaulttuple('List', 'id, title, created_at, revision')
 
 
 class WunderClient(object):
@@ -55,10 +70,10 @@ class WunderClient(object):
         resp.raise_for_status()
 
     def me(self):
-        return self._get('user')
+        return User(**self._get('user'))
 
     def get_lists(self):
-        return self._get('lists')
+        return [List(**lst) for lst in self._get('lists')]
 
     def get_list(self, id=None, title=None):
         if id is None and title is None:
@@ -66,13 +81,13 @@ class WunderClient(object):
 
         if id is None:
             for l in self.get_lists():
-                if l.get('title') == title:
-                    id = l.get('id')
+                if l.title == title:
+                    id = l.id
                     break
         if id is None:
             raise ValidationException('List with title=`{}` does not exist'.format(title))
 
-        return self._get('lists/{}'.format(id))
+        return List(**self._get('lists/{}'.format(id)))
 
     def create_list(self, title):
         if title is None:
@@ -80,13 +95,13 @@ class WunderClient(object):
         elif not isinstance(title, basestring):
             raise ValidationException('\'title\' must be a string')
 
-        return self._post('lists', {'title': title})
+        return List(**self._post('lists', {'title': title}))
 
     def delete_list(self, id=None, title=None):
         if id is None:
             l = self.get_list(title=title)
-            id = l['id']
-        self._delete('lists/{}'.format(id), params={'revision': l['revision']})
+            id = l.id
+        self._delete('lists/{}'.format(id), params={'revision': l.revision})
 
 
 class ValidationException(Exception):
