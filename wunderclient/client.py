@@ -1,30 +1,16 @@
 
 import json
-from collections import namedtuple
 from urllib import urlencode
 import requests
+
+from wunderclient.utils import namedtype
 
 # constants
 API_PREFIX = 'https://a.wunderlist.com/api/v1/'
 
-
-# utils
-def defaulttuple(typename, field_names):
-    T = namedtuple(typename, field_names)
-    T.__new__.__defaults__ = (None,) * len(T._fields)
-
-    def __new__(cls, *args, **kwargs):
-        for k in kwargs.keys():
-            if k not in T._fields:
-                kwargs.pop(k)
-        return T.__new__(cls, *args, **kwargs)
-
-    return type(T.__name__, (T,), {'__new__': __new__})
-
-
 # types
-User = defaulttuple('User', 'id, name, email, created_at, revision')
-List = defaulttuple('List', 'id, title, created_at, revision')
+User = namedtype('User', 'id, name, email, created_at, revision')
+List = namedtype('List', 'id, title, created_at, revision')
 
 
 class WunderClient(object):
