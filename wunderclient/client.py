@@ -11,6 +11,7 @@ API_PREFIX = 'https://a.wunderlist.com/api/v1/'
 # types
 User = namedtype('User', 'id, name, email, created_at, revision')
 List = namedtype('List', 'id, title, created_at, revision')
+Task = namedtype('Task', 'id, title, assignee_id, created_at, created_by_id, starred, due_date, list_id, revision')
 
 
 class WunderClient(object):
@@ -88,6 +89,21 @@ class WunderClient(object):
             l = self.get_list(title=title)
             id = l.id
         self._delete('lists/{}'.format(id), params={'revision': l.revision})
+
+    def get_tasks(self, list_id=None, list_title=None, completed=False):
+        if list_id is None:
+            list_id = self.get_list(title=list_title)
+        return [Task(**task) for task in self._get('tasks', params={'list_id': list_id, 'completed': completed})]
+
+    def get_task(self, id=None, list_id=None, title=None):
+        if not id and list_id and title:
+            for t in self.get_tasks(list_id=list_id):
+                if t.title = title:
+                    return t
+        else:
+            return Task(**self._get('tasks/{}'.format(id)))
+
+
 
 
 class ValidationException(Exception):
