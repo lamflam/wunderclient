@@ -5,13 +5,16 @@ import requests
 
 from wunderclient.utils import namedtype
 
+
 # constants
 API_PREFIX = 'https://a.wunderlist.com/api/v1/'
+
 
 # types
 User = namedtype('User', 'id, name, email, created_at, revision')
 List = namedtype('List', 'id, title, created_at, revision')
 Task = namedtype('Task', 'id, title, assignee_id, created_at, created_by_id, starred, due_date, list_id, revision')
+ALL_TYPES = [User, List, Task]
 
 
 class WunderClient(object):
@@ -33,13 +36,6 @@ class WunderClient(object):
             'Accept': 'application/json'
         }
 
-    def _json(self, data):
-        if hasattr(data, '_asdict'):
-            ret = json.dumps(data._asdict())
-        else:
-            ret = json.dumps(data)
-        return ret
-
     def _get(self, path=None, params=None):
         resp = requests.get(self._path(path, params), headers=self._headers())
         resp.raise_for_status()
@@ -48,7 +44,14 @@ class WunderClient(object):
     def _post(self, path=None, params=None):
         headers = self._headers()
         headers['Content-Type'] = 'application/json'
-        resp = requests.post(self._path(path), headers=headers, data=self._json(params))
+        resp = requests.post(self._path(path), headers=headers, data=json.dumps(params))
+        resp.raise_for_status()
+        return resp.json()
+
+    def _patch(self, path=None, params=None):
+        headers = self._headers()
+        headers['Content-Type'] = 'application/json'
+        resp = requests.patch(self._path(path), headers=headers, data=json.dumps(params))
         resp.raise_for_status()
         return resp.json()
 
@@ -62,48 +65,55 @@ class WunderClient(object):
     def get_lists(self):
         return [List(**lst) for lst in self._get('lists')]
 
-    def get_list(self, id=None, title=None):
-        if id is None and title is None:
-            raise ValidationException('Must provide a `title` or `id`')
-
+    def get_list(self, id):
         if id is None:
-            for l in self.get_lists():
-                if l.title == title:
-                    id = l.id
-                    break
-        if id is None:
-            raise ValidationException('List with title=`{}` does not exist'.format(title))
-
+            raise ValidationException('id required')
         return List(**self._get('lists/{}'.format(id)))
 
-    def create_list(self, title):
-        if title is None:
-            raise ValidationException('\'title\' is required.')
-        elif not isinstance(title, basestring):
-            raise ValidationException('\'title\' must be a string')
+    def create_list(self, **lst):
+        lst = List(**lst)
+        if lst.title is None:
+            raise ValidationException('A title is required.')
 
-        return List(**self._post('lists', {'title': title}))
+        return List(**self._post('lists', {'title': lst.title}))
 
-    def delete_list(self, id=None, title=None):
-        if id is None:
-            l = self.get_list(title=title)
-            id = l.id
-        self._delete('lists/{}'.format(id), params={'revision': l.revision})
+    def update_list(self, **lst):
+        lst = List(**lst)
+        if lst.id is None or lst.revision is None:
+            raise ValidationException('id and revision are required')
+        return List(**self._patch('lists/{}'.format(lst.id), params=lst))
 
-    def get_tasks(self, list_id=None, list_title=None, completed=False):
-        if list_id is None:
-            list_id = self.get_list(title=list_title)
+    def delete_list(self, **lst):
+        lst = List(**lst)
+        if lst.id is None or lst.revision is None:
+            raise ValidationException('id and revision are required')
+        self._delete('lists/{}'.format(lst.id), params={'revision': lst.revision})
+
+    def get_tasks(self, list_id, completed=False):
         return [Task(**task) for task in self._get('tasks', params={'list_id': list_id, 'completed': completed})]
 
-    def get_task(self, id=None, list_id=None, title=None):
-        if not id and list_id and title:
-            for t in self.get_tasks(list_id=list_id):
-                if t.title = title:
-                    return t
-        else:
-            return Task(**self._get('tasks/{}'.format(id)))
+    def get_task(self, id):
+        if id is None:
+            raise ValidationException('id required')
+        return Task(**self._get('tasks/{}'.format(id)))
 
+    def create_task(self, **task):
+        task = Task(**task)
+        if task.list_id is None or task.title is None:
+            raise ValidationException('id and title are required.')
+        return List(**self._post('tasks', params=task))
 
+    def update_task(self, **task):
+        task = Task(**task)
+        if task.id is None or task.revision is None:
+            raise ValidationException('id and revision are required')
+        return List(**self._patch('tasks/{}'.format(task.id), params=task))
+
+    def delete_task(self, **task):
+        task = Task(**task)
+        if task.id is None or task.revision is None:
+            raise ValidationException('id and revision are required')
+        self._delete('tasks/{}'.format(task.id), params={'revision': task.revision})
 
 
 class ValidationException(Exception):
