@@ -7,3 +7,4 @@ venv/
 # python
 *.pyc
 .pythonrc
+dist/
