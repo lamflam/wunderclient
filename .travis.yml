@@ -11,7 +11,12 @@ python:
   - "3.6-dev" # 3.6 development branch
   - "3.7-dev" # 3.7 development branch
   - "nightly" # currently points to 3.7-dev
+
+before_install:
+   - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then pip install 'coverage<4.0.0'; else pip install coverage; fi
+
 # command to install dependencies
 install: "pip install -r requirements.dev.txt"
+
 # command to run tests
 script: nosetests -v --with-coverage --cover-erase --cover-package=wunderclient
