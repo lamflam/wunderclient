@@ -1,9 +1,7 @@
 
 import json
-from urllib import urlencode
 import requests
-
-from wunderclient.utils import namedtype
+from wunderclient.utils import namedtype, urlencode
 
 
 # constants

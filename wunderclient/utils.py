@@ -1,4 +1,18 @@
 
+# Compatibility
+try: from urllib import urlencode  # noqa
+except: from urllib.parse import urlencode  # noqa
+
+try: basestring  # noqa
+except: basestring = str  # noqa
+
+try: from nose.tools import assert_is_instance  # noqa
+except:
+    from nose.tools import assert_true
+    def assert_is_instance(obj, types, msg=None):
+        assert_true(isinstance(obj, types), msg)
+
+
 def namedtype(typename, fields):
     if isinstance(fields, basestring):
         fields = [f.strip() for f in fields.split(',')]

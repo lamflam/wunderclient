@@ -1,6 +1,7 @@
 from mock import Mock
 from unittest import TestCase
-from nose.tools import assert_equals, assert_raises, assert_is_instance
+from nose.tools import assert_equals, assert_raises
+from wunderclient.utils import assert_is_instance
 from wunderclient.client import WunderClient, User, List, ValidationError
 
 
