@@ -7,4 +7,5 @@ venv/
 # python
 *.pyc
 .pythonrc
+.coverage
 dist/
