@@ -23,9 +23,9 @@ class WunderClient(object):
         self.access_token = access_token
 
     def _path(self, path=None, params=None):
-        full_path = '{}{}'.format(API_PREFIX, path)
+        full_path = '{0}{1}'.format(API_PREFIX, path)
         if params is not None:
-            full_path = '{}?{}'.format(full_path, urlencode(params))
+            full_path = '{0}?{1}'.format(full_path, urlencode(params))
         return full_path
 
     def _headers(self):
@@ -67,7 +67,7 @@ class WunderClient(object):
     def get_list(self, id):
         if id is None:
             raise ValidationError('id required')
-        return List(**self._get('lists/{}'.format(id)))
+        return List(**self._get('lists/{0}'.format(id)))
 
     def create_list(self, **lst):
         lst = List(**lst)
@@ -80,13 +80,13 @@ class WunderClient(object):
         lst = List(**lst)
         if lst.id is None or lst.revision is None:
             raise ValidationError('id and revision are required')
-        return List(**self._patch('lists/{}'.format(lst.id), params=lst))
+        return List(**self._patch('lists/{0}'.format(lst.id), params=lst))
 
     def delete_list(self, **lst):
         lst = List(**lst)
         if lst.id is None or lst.revision is None:
             raise ValidationError('id and revision are required')
-        self._delete('lists/{}'.format(lst.id), params={'revision': lst.revision})
+        self._delete('lists/{0}'.format(lst.id), params={'revision': lst.revision})
 
     def get_tasks(self, list_id, completed=False):
         return [Task(**task) for task in self._get('tasks', params={'list_id': list_id, 'completed': completed})]
@@ -94,7 +94,7 @@ class WunderClient(object):
     def get_task(self, id):
         if id is None:
             raise ValidationError('id required')
-        return Task(**self._get('tasks/{}'.format(id)))
+        return Task(**self._get('tasks/{0}'.format(id)))
 
     def create_task(self, **task):
         task = Task(**task)
@@ -106,13 +106,13 @@ class WunderClient(object):
         task = Task(**task)
         if task.id is None or task.revision is None:
             raise ValidationError('id and revision are required')
-        return List(**self._patch('tasks/{}'.format(task.id), params=task))
+        return List(**self._patch('tasks/{0}'.format(task.id), params=task))
 
     def delete_task(self, **task):
         task = Task(**task)
         if task.id is None or task.revision is None:
             raise ValidationError('id and revision are required')
-        self._delete('tasks/{}'.format(task.id), params={'revision': task.revision})
+        self._delete('tasks/{0}'.format(task.id), params={'revision': task.revision})
 
 
 class ValidationError(Exception):
