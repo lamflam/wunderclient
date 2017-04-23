@@ -100,13 +100,13 @@ class WunderClient(object):
         task = Task(**task)
         if task.list_id is None or task.title is None:
             raise ValidationError('id and title are required.')
-        return List(**self._post('tasks', params=task))
+        return Task(**self._post('tasks', params=task))
 
     def update_task(self, **task):
         task = Task(**task)
         if task.id is None or task.revision is None:
             raise ValidationError('id and revision are required')
-        return List(**self._patch('tasks/{0}'.format(task.id), params=task))
+        return Task(**self._patch('tasks/{0}'.format(task.id), params=task))
 
     def delete_task(self, **task):
         task = Task(**task)
